@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USIP — Urban Surveillance Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN SYSTEM — TACTICAL DARK INTERFACE
+   Inspired by defense operations centers
+═══════════════════════════════════════════ */
+:root {
+  --bg-void:     #020408;
+  --bg-deep:     #060c14;
+  --bg-panel:    #0a1520;
+  --bg-card:     #0d1b2a;
+  --bg-hover:    #122335;
+  --border:      #1a3050;
+  --border-glow: #1e4a7a;
+  --accent:      #00d4ff;
+  --accent2:     #00ff9d;
+  --warn:        #ff9500;
+  --danger:      #ff3b3b;
+  --critical:    #ff0040;
+  --text-primary:#e8f4fd;
+  --text-mid:    #7da8cc;
+  --text-dim:    #3d6a8a;
+  --font-mono:   'Share Tech Mono', monospace;
+  --font-cond:   'Barlow Condensed', sans-serif;
+  --font-body:   'Barlow', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/* ── Scanline overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,212,255,0.012) 2px,
+    rgba(0,212,255,0.012) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 52px;
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-icon {
+  width: 32px; height: 32px;
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.logo-icon::before {
+  content: '';
+  position: absolute;
+  width: 200%; height: 200%;
+  background: conic-gradient(transparent 90deg, var(--accent) 92deg, transparent 94deg);
+  animation: radar-sweep 3s linear infinite;
+}
+.logo-icon::after {
+  content: '◎';
+  font-size: 14px;
+  color: var(--accent);
+  position: relative;
+  z-index: 1;
+}
+@keyframes radar-sweep { to { transform: rotate(360deg); } }
+
+.logo-text {
+  font-family: var(--font-cond);
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.logo-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-mid);
+}
+.status-pill .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent2);
+  box-shadow: 0 0 6px var(--accent2);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.status-pill.warn .dot { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+.status-pill.danger .dot { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+.clock {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 2px;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 2px;
+}
+.nav-tab {
+  padding: 6px 16px;
+  font-family: var(--font-cond);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.nav-tab:hover { color: var(--text-mid); border-color: var(--border); }
+.nav-tab.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(0,212,255,0.06);
+}
+
+/* ── LAYOUT ── */
+.app-body {
+  display: flex;
+  height: calc(100vh - 52px);
+  overflow: hidden;
+}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar {
+  width: 280px;
+  background: var(--bg-deep);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sidebar-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-title {
+  font-family: var(--font-cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+/* ── KPI CARDS ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+.kpi.warn::before { background: var(--warn); }
+.kpi.danger::before { background: var(--danger); }
+.kpi.ok::before { background: var(--accent2); }
+
+.kpi-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.kpi-label {
+  font-family: var(--font-cond);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ── ALERT LIST ── */
+.alert-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+.alert-list::-webkit-scrollbar { width: 3px; }
+.alert-list::-webkit-scrollbar-thumb { background: var(--border-glow); }
+
+.alert-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warn);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  animation: slide-in-left 0.3s ease;
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-20px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+.alert-item:hover { border-color: var(--border-glow); background: var(--bg-hover); }
+.alert-item.critical { border-left-color: var(--critical); }
+.alert-item.high     { border-left-color: var(--danger); }
+.alert-item.ack      { opacity: 0.45; }
+
+.alert-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3px;
+}
+.alert-label {
+  font-family: var(--font-cond);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.alert-severity {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.sev-critical { background: rgba(255,0,64,0.2); color: var(--critical); border: 1px solid var(--critical); }
+.sev-high     { background: rgba(255,59,59,0.2); color: var(--danger); border: 1px solid var(--danger); }
+.sev-medium   { background: rgba(255,149,0,0.2); color: var(--warn); border: 1px solid var(--warn); }
+.sev-low      { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid var(--accent); }
+.sev-none     { background: rgba(0,255,157,0.1); color: var(--accent2); border: 1px solid var(--accent2); }
+
+.alert-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* ── MAIN AREA ── */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-deep);
+}
+
+/* ── TABS CONTENT ── */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+}
+.tab-content.active { display: flex; }
+
+/* ── LIVE FEEDS TAB ── */
+#tab-feeds {
+  flex-direction: column;
+  gap: 0;
+}
+
+.feeds-grid-wrap {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+.feeds-grid-wrap::-webkit-scrollbar { width: 3px; }
+.feeds-grid-wrap::-webkit-scrollbar-thumb { background: var(--border); }
+
+.feeds-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.feed-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  position: relative;
+}
+.feed-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.feed-card.alert-active { border-color: var(--danger); animation: border-pulse 1s ease-in-out infinite; }
+.feed-card.critical-active { border-color: var(--critical); animation: border-pulse-crit 0.6s ease-in-out infinite; }
+
+@keyframes border-pulse      { 50% { border-color: rgba(255,59,59,0.3); } }
+@keyframes border-pulse-crit { 50% { border-color: rgba(255,0,64,0.3); } }
+
+.feed-thumb {
+  height: 120px;
+  position: relative;
+  overflow: hidden;
+}
+.feed-canvas {
+  width: 100%; height: 100%;
+  display: block;
+}
+.feed-badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: rgba(2,4,8,0.8);
+  border: 1px solid var(--border);
+  color: var(--accent2);
+}
+.feed-badge.live-badge { color: var(--danger); border-color: var(--danger); }
+
+.feed-info {
+  padding: 8px 10px;
+}
+.feed-name {
+  font-family: var(--font-cond);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.feed-zone {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.feed-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+.feed-type {
+  font-family: var(--font-cond);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+}
+.feed-threat {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+/* ── EVENT STREAM TAB ── */
+#tab-events {
+  flex-direction: column;
+}
+
+.events-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.filter-btn {
+  padding: 5px 14px;
+  font-family: var(--font-cond);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover { color: var(--text-mid); border-color: var(--border-glow); }
+.filter-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(0,212,255,0.08); }
+.filter-btn.f-critical.active { color: var(--critical); border-color: var(--critical); background: rgba(255,0,64,0.08); }
+.filter-btn.f-high.active    { color: var(--danger); border-color: var(--danger); background: rgba(255,59,59,0.08); }
+.filter-btn.f-medium.active  { color: var(--warn); border-color: var(--warn); background: rgba(255,149,0,0.08); }
+
+.events-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+}
+.events-table-wrap::-webkit-scrollbar { width: 3px; }
+.events-table-wrap::-webkit-scrollbar-thumb { background: var(--border); }
+
+table.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.events-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-deep);
+  z-index: 10;
+}
+.events-table th {
+  padding: 10px 8px;
+  text-align: left;
+  font-family: var(--font-cond);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+.events-table td {
+  padding: 8px;
+  border-bottom: 1px solid rgba(26,48,80,0.5);
+  color: var(--text-mid);
+  vertical-align: middle;
+}
+.events-table tr:hover td { background: var(--bg-hover); color: var(--text-primary); }
+.events-table tr.new-row td { animation: row-flash 0.8s ease; }
+@keyframes row-flash {
+  0% { background: rgba(0,212,255,0.12); }
+  100% { background: transparent; }
+}
+
+.conf-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.conf-track {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.conf-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+.conf-fill.high { background: var(--danger); }
+.conf-fill.crit { background: var(--critical); }
+
+.resolve-btn {
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  border: 1px solid var(--border-glow);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.resolve-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.resolve-btn.resolved { color: var(--text-dim); border-color: var(--border); cursor: default; }
+
+/* ── ANALYTICS TAB ── */
+#tab-analytics {
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 16px;
+}
+#tab-analytics::-webkit-scrollbar { width: 3px; }
+#tab-analytics::-webkit-scrollbar-thumb { background: var(--border); }
+
+.analytics-row {
+  display: grid;
+  gap: 16px;
+}
+.analytics-row.two { grid-template-columns: 1fr 1fr; }
+.analytics-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+}
+.chart-title {
+  font-family: var(--font-cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+/* Bar chart */
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bar-label {
+  font-family: var(--font-cond);
+  font-size: 11px;
+  width: 100px;
+  color: var(--text-mid);
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 18px;
+  background: var(--bg-panel);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.bar-fill::after {
+  content: attr(data-val);
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.9);
+}
+.bar-fill.b-none     { background: linear-gradient(90deg, #1a3a1a, #2a5a2a); }
+.bar-fill.b-low      { background: linear-gradient(90deg, #1a3a10, #2a6010); }
+.bar-fill.b-medium   { background: linear-gradient(90deg, #3a2e10, #6a5010); }
+.bar-fill.b-high     { background: linear-gradient(90deg, #3a1a10, #6a2a10); }
+.bar-fill.b-critical { background: linear-gradient(90deg, #3a1020, #8a0020); }
+.bar-fill.b-zone     { background: linear-gradient(90deg, #0a2a4a, #0a4a7a); }
+
+/* Threat timeline */
+.timeline-chart {
+  height: 80px;
+  position: relative;
+  overflow: hidden;
+}
+#timeline-canvas { width: 100%; height: 100%; }
+
+/* Donut */
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.donut-svg { flex-shrink: 0; }
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mid);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── MAP TAB ── */
+#tab-map {
+  flex-direction: column;
+}
+.map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+#map-canvas { width: 100%; height: 100%; display: block; }
+.map-overlay {
+  position: absolute;
+  top: 12px; right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.map-legend-card {
+  background: rgba(6,12,20,0.9);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.map-legend-title {
+  font-family: var(--font-cond);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.map-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-mid);
+  margin-bottom: 4px;
+}
+.map-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  width: 260px;
+  background: var(--bg-deep);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.rp-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.rp-title {
+  font-family: var(--font-cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.cam-list { display: flex; flex-direction: column; gap: 5px; }
+.cam-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cam-row:hover { background: var(--bg-hover); }
+.cam-status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cam-status-dot.online    { background: var(--accent2); box-shadow: 0 0 4px var(--accent2); }
+.cam-status-dot.degraded  { background: var(--warn); box-shadow: 0 0 4px var(--warn); }
+.cam-status-dot.offline   { background: var(--text-dim); }
+.cam-info { flex: 1; min-width: 0; }
+.cam-name {
+  font-family: var(--font-cond);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cam-type {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.privacy-card {
+  background: rgba(0,255,157,0.04);
+  border: 1px solid rgba(0,255,157,0.15);
+  border-radius: 4px;
+  padding: 10px;
+}
+.privacy-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0,255,157,0.08);
+}
+.privacy-row:last-child { border-bottom: none; }
+.privacy-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.privacy-check {
+  font-size: 11px;
+  color: var(--accent2);
+}
+
+.ai-summary-btn {
+  width: 100%;
+  padding: 8px;
+  font-family: var(--font-cond);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: rgba(0,212,255,0.06);
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ai-summary-btn:hover { background: rgba(0,212,255,0.12); box-shadow: 0 0 12px rgba(0,212,255,0.2); }
+
+.summary-output {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mid);
+  line-height: 1.6;
+  min-height: 60px;
+  padding: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar {
+  height: 28px;
+  background: var(--bg-void);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 20px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.bottom-bar span { display: flex; align-items: center; gap: 5px; }
+.bottom-bar .accent { color: var(--accent); }
+.bottom-bar .ok     { color: var(--accent2); }
+.bottom-bar .warn   { color: var(--warn); }
+
+/* ── CRITICAL ALERT OVERLAY ── */
+.critical-overlay {
+  display: none;
+  position: fixed;
+  top: 60px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: rgba(255,0,64,0.1);
+  border: 2px solid var(--critical);
+  border-radius: 6px;
+  padding: 12px 24px;
+  text-align: center;
+  animation: critical-flash 0.4s ease-in-out;
+  box-shadow: 0 0 40px rgba(255,0,64,0.3);
+  min-width: 400px;
+}
+@keyframes critical-flash {
+  0%,100% { border-color: var(--critical); }
+  50%  { border-color: rgba(255,0,64,0.3); }
+}
+.critical-overlay .co-title {
+  font-family: var(--font-cond);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--critical);
+}
+.critical-overlay .co-body {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-mid);
+  margin-top: 4px;
+}
+.critical-overlay .co-close {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.critical-overlay .co-close:hover { color: var(--text-mid); }
+</style>
+</head>
+<body>
+
+<!-- ═══ CRITICAL ALERT OVERLAY ═══ -->
+<div class="critical-overlay" id="critOverlay">
+  <div class="co-title">⚠ CRITICAL THREAT DETECTED</div>
+  <div class="co-body" id="critBody">—</div>
+  <div class="co-close" onclick="document.getElementById('critOverlay').style.display='none'">[ DISMISS ]</div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="logo-group">
+    <div class="logo-icon"></div>
+    <div>
+      <div class="logo-text">USIP</div>
+      <div class="logo-sub">URBAN SURVEILLANCE INTELLIGENCE PLATFORM</div>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="status-pill" id="sysStatus">
+      <div class="dot"></div>
+      <span>SYSTEM NOMINAL</span>
+    </div>
+    <div class="status-pill warn" id="alertCount">
+      <div class="dot"></div>
+      <span id="alertCountText">0 ACTIVE ALERTS</span>
+    </div>
+    <div class="clock" id="clockDisplay">00:00:00</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchTab('feeds',this)">LIVE FEEDS</div>
+    <div class="nav-tab" onclick="switchTab('events',this)">EVENTS</div>
+    <div class="nav-tab" onclick="switchTab('analytics',this)">ANALYTICS</div>
+    <div class="nav-tab" onclick="switchTab('map',this)">THREAT MAP</div>
+  </div>
+</header>
+
+<!-- ═══ BODY ═══ -->
+<div class="app-body">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Operational Stats</div>
+      <div class="kpi-grid">
+        <div class="kpi ok">
+          <div class="kpi-value" id="kpi-online">7</div>
+          <div class="kpi-label">Cameras Online</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-value" id="kpi-events">0</div>
+          <div class="kpi-label">Total Events</div>
+        </div>
+        <div class="kpi danger">
+          <div class="kpi-value" id="kpi-critical">0</div>
+          <div class="kpi-label">Critical Alerts</div>
+        </div>
+        <div class="kpi warn">
+          <div class="kpi-value" id="kpi-resolved">0</div>
+          <div class="kpi-label">Resolved</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="flex:1; display:flex; flex-direction:column; overflow:hidden; padding-bottom:0;">
+      <div class="sidebar-title">Active Alerts</div>
+      <div class="alert-list" id="alertList">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);text-align:center;padding:20px;">
+          Monitoring feeds…
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="main-area">
+
+    <!-- LIVE FEEDS TAB -->
+    <div class="tab-content active" id="tab-feeds">
+      <div class="feeds-grid-wrap">
+        <div class="feeds-grid" id="feedsGrid"></div>
+      </div>
+    </div>
+
+    <!-- EVENTS TAB -->
+    <div class="tab-content" id="tab-events">
+      <div class="events-toolbar">
+        <span style="font-family:var(--font-cond);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;">FILTER:</span>
+        <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
+        <button class="filter-btn f-critical" onclick="setFilter('critical',this)">CRITICAL</button>
+        <button class="filter-btn f-high" onclick="setFilter('high',this)">HIGH</button>
+        <button class="filter-btn f-medium" onclick="setFilter('medium',this)">MEDIUM</button>
+        <button class="filter-btn" onclick="setFilter('low',this)">LOW</button>
+        <button class="filter-btn" onclick="setFilter('none',this)">NORMAL</button>
+        <span style="margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);" id="eventsCount">0 events</span>
+      </div>
+      <div class="events-table-wrap">
+        <table class="events-table">
+          <thead>
+            <tr>
+              <th>TIME</th>
+              <th>EVENT ID</th>
+              <th>CAMERA</th>
+              <th>ZONE</th>
+              <th>THREAT</th>
+              <th>SEVERITY</th>
+              <th>CONFIDENCE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="eventsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ANALYTICS TAB -->
+    <div class="tab-content" id="tab-analytics">
+      <div class="analytics-row two">
+        <div class="chart-card">
+          <div class="chart-title">Severity Distribution</div>
+          <div class="bar-chart" id="sevChart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Zone Activity</div>
+          <div class="bar-chart" id="zoneChart"></div>
+        </div>
+      </div>
+      <div class="analytics-row two">
+        <div class="chart-card">
+          <div class="chart-title">Threat Type Breakdown</div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="18"/>
+              <g id="donutArcs"></g>
+            </svg>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Event Timeline (Last 60s)</div>
+          <div class="timeline-chart">
+            <canvas id="timeline-canvas"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:4px;">
+            <span>-60s</span><span>-30s</span><span>NOW</span>
+          </div>
+        </div>
+      </div>
+      <div class="analytics-row three">
+        <div class="chart-card">
+          <div class="chart-title">Camera Type Mix</div>
+          <div class="bar-chart" id="typeChart"></div>
+        </div>
+        <div class="chart-card" style="grid-column:span 2;">
+          <div class="chart-title">Threat Scoring Engine — C Module Output</div>
+          <div id="threatScoreOutput" style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);line-height:1.8;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP TAB -->
+    <div class="tab-content" id="tab-map">
+      <div class="map-container">
+        <canvas id="map-canvas"></canvas>
+        <div class="map-overlay">
+          <div class="map-legend-card">
+            <div class="map-legend-title">Threat Heatmap</div>
+            <div class="map-legend-row"><div class="map-dot" style="background:#ff0040;box-shadow:0 0 6px #ff0040;"></div>Critical</div>
+            <div class="map-legend-row"><div class="map-dot" style="background:#ff3b3b;box-shadow:0 0 6px #ff3b3b;"></div>High</div>
+            <div class="map-legend-row"><div class="map-dot" style="background:#ff9500;box-shadow:0 0 4px #ff9500;"></div>Medium</div>
+            <div class="map-legend-row"><div class="map-dot" style="background:#00d4ff;box-shadow:0 0 4px #00d4ff;"></div>Camera</div>
+          </div>
+          <div class="map-legend-card">
+            <div class="map-legend-title">Anonymization</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent2);">● Faces blurred</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent2);">● Plates masked</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent2);">● No PII stored</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+    <div class="rp-section">
+      <div class="rp-title">Camera Network</div>
+      <div class="cam-list" id="camList"></div>
+    </div>
+    <div class="rp-section">
+      <div class="rp-title">Privacy Controls</div>
+      <div class="privacy-card">
+        <div class="privacy-row">
+          <span class="privacy-label">Face Anonymization</span>
+          <span class="privacy-check">✓ ON</span>
+        </div>
+        <div class="privacy-row">
+          <span class="privacy-label">Plate Masking</span>
+          <span class="privacy-check">✓ ON</span>
+        </div>
+        <div class="privacy-row">
+          <span class="privacy-label">Data Minimization</span>
+          <span class="privacy-check">✓ ON</span>
+        </div>
+        <div class="privacy-row">
+          <span class="privacy-label">Secure Access Log</span>
+          <span class="privacy-check">✓ ON</span>
+        </div>
+        <div class="privacy-row">
+          <span class="privacy-label">Auto-Purge 72h</span>
+          <span class="privacy-check">✓ ON</span>
+        </div>
+      </div>
+    </div>
+    <div class="rp-section" style="flex:1;display:flex;flex-direction:column;">
+      <div class="rp-title">AI Video Summary</div>
+      <select id="summaryCam" style="width:100%;padding:5px 8px;background:var(--bg-panel);border:1px solid var(--border);color:var(--text-mid);font-family:var(--font-mono);font-size:10px;border-radius:3px;margin-bottom:8px;"></select>
+      <button class="ai-summary-btn" onclick="requestSummary()">▶ ANALYZE FEED</button>
+      <div class="summary-output" id="summaryOutput">Select a camera and click Analyze Feed to generate an AI summary of recent activity.</div>
+    </div>
+  </aside>
+
+</div><!-- app-body -->
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <span>USIP v2.6 · NSS'26 IIT Roorkee Changethon</span>
+  <span>·</span>
+  <span class="ok">● BACKEND CONNECTED</span>
+  <span>·</span>
+  <span>C THREAT SCORER: <span class="accent" id="cScoreStatus">ACTIVE</span></span>
+  <span>·</span>
+  <span>ENCRYPTION: <span class="ok">AES-256</span></span>
+  <span style="margin-left:auto;">PRIVACY-BY-DESIGN COMPLIANT</span>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
